@@ -1,18 +1,39 @@
+// 注意：无需引入 com.android.library 插件（我们不需要编译源码）
 plugins {
-    id 'maven-publish'  // 引入maven发布插件（JitPack必需）
+    id 'maven-publish'  // 仅保留maven发布插件，用于发布现成AAR
 }
 
-// 配置发布逻辑，直接关联现成的AAR文件
+// 关键：禁用Android相关的任务检查，避免JitPack寻找assemble任务
+project.plugins.withType(JavaPlugin) {
+    it.sourceSets {
+        main {
+            // 空配置，仅用于规避任务检查
+        }
+    }
+}
+
+// 配置发布逻辑，直接关联现成的AAR文件（和之前一致，保留GAV坐标）
 publishing {
     publications {
         release(MavenPublication) {
-            // 指定现成AAR文件作为发布产物
+            // 指定现成AAR文件路径（确保文件名和你的仓库中一致）
             artifact file('SdkApiJar_V1.250915.0914.aar')
             
-            // 配置GAV坐标（对应JitPack依赖地址）
-            groupId = 'com.github.SUNTEK'  // 例：com.github.XieDaning
-            artifactId = 'SdkApiJar'                // 例：SdkApiaar
-            version = '1.250915.0914'           // 例：1.0.0
+            // GAV坐标：对应你的GitHub用户名、仓库名、版本号
+            groupId = 'com.github.SUNTEK-DEV'  // 你的GitHub用户名（已自动识别，可保留）
+            artifactId = 'SdkApiJar'           // 你的仓库名（已自动识别，可保留）
+            version = '1.250915.0914'      // 例如：1.250915.0914（和AAR版本一致）
         }
     }
+    
+    // 可选：避免发布时依赖其他无效任务
+    repositories {
+        mavenLocal() // 仅本地仓库，JitPack会自动处理远程分发
+    }
+}
+
+// 关键：添加空的build任务，避免JitPack寻找assemble任务时报错
+task build {
+    // 任务依赖：仅依赖publishToMavenLocal（发布现成AAR到本地），无其他操作
+    dependsOn publishing.publications.release.publishToMavenLocal
 }
