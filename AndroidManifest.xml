@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.suntek.sdk">
+
+    <!-- 最简 Manifest，仅用于满足 AGP 构建要求 -->
+    <uses-sdk android:minSdkVersion="21" />
+
+</manifest>

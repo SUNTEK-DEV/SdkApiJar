@@ -1,8 +1,0 @@
-# 指定JDK版本（必须保留，兼容maven-publish插件）
-jdk:
-  - openjdk11
-
-# 关键新增：指定JitPack执行的任务，跳过assemble
-# 只执行 publishToMavenLocal（发布现成AAR），不执行默认的 assemble 任务
-script:
-  - ./gradlew publishToMavenLocal -Pgroup=com.github.SUNTEK-DEV -Pversion=v3.0

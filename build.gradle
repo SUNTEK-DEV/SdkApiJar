@@ -1,39 +1,109 @@
-// 注意：无需引入 com.android.library 插件（我们不需要编译源码）
+// build.gradle
+
 plugins {
-    id 'maven-publish'  // 仅保留maven发布插件，用于发布现成AAR
+    id 'com.android.library' // 声明这是一个 Android 库项目
+    id 'maven-publish'       // 必须！用于发布到 Maven 仓库
 }
 
-// 关键：禁用Android相关的任务检查，避免JitPack寻找assemble任务
-project.plugins.withType(JavaPlugin) {
-    it.sourceSets {
+// 配置 Android 插件
+android {
+    compileSdkVersion 30 // 请根据你的 AAR 实际编译时使用的 SDK 版本调整
+
+    defaultConfig {
+        minSdkVersion 19 // 请根据你的 AAR 实际支持的最低 SDK 版本调整
+        targetSdkVersion 30 // 请根据你的 AAR 实际目标 SDK 版本调整
+    }
+
+    // 指定源集，告诉 Gradle 我们没有 Java/Kotlin 源码，只有预编译的 AAR
+    sourceSets {
         main {
-            // 空配置，仅用于规避任务检查
+            manifest.srcFile 'AndroidManifest.xml' // 指向我们刚创建的最简清单文件
+            // 不需要 java, res 等目录，因为我们只发布 AAR
         }
     }
+
+    // 关键：禁用所有编译任务，因为我们不希望 Gradle 尝试编译不存在的源码
+    compileJava.enabled = false
+    compileKotlin.enabled = false
+    compileReleaseJava.enabled = false
+    compileReleaseKotlin.enabled = false
+    compileDebugJava.enabled = false
+    compileDebugKotlin.enabled = false
+    compileTestJava.enabled = false
+    compileTestKotlin.enabled = false
+    compileReleaseUnitTestJava.enabled = false
+    compileReleaseUnitTestKotlin.enabled = false
+    compileDebugUnitTestJava.enabled = false
+    compileDebugUnitTestKotlin.enabled = false
 }
 
-// 配置发布逻辑，直接关联现成的AAR文件（和之前一致，保留GAV坐标）
+// 定义变量，指向你已有的 AAR 文件
+def aarFileName = 'SdkApiJar_V1.250915.0914.aar'
+def aarFile = file(aarFileName)
+
+// 确保 AAR 文件存在，否则构建失败
+if (!aarFile.exists()) {
+    throw new GradleException("Required AAR file '$aarFileName' not found in project root.")
+}
+
+// 创建一个 configuration 来包含我们的 AAR 文件
+configurations {
+    archives
+}
+
+// 将 AAR 文件添加到 archives 配置中
+artifacts {
+    archives aarFile
+}
+
+// 配置 Maven 发布
 publishing {
     publications {
         release(MavenPublication) {
-            // 指定现成AAR文件路径（确保文件名和你的仓库中一致）
-            artifact file('SdkApiJar_V1.250915.0914.aar')
-            
-            // GAV坐标：对应你的GitHub用户名、仓库名、版本号
-            groupId = 'com.github.SUNTEK-DEV'  // 你的GitHub用户名（已自动识别，可保留）
-            artifactId = 'SdkApiJar'           // 你的仓库名（已自动识别，可保留）
-            version = '1.250915.0914'      // 例如：1.250915.0914（和AAR版本一致）
+            groupId = 'com.github.SUNTEK-DEV' // 保持与 JitPack 一致
+            artifactId = 'SdkApiJar'         // 这是你在 Android Studio 中引用的 artifactId
+            version = project.version        // JitPack 会通过 -Pversion 参数传入，如 v3.0
+
+            // 核心：直接发布这个 AAR 文件
+            artifact(aarFile) {
+                classifier ''     // 不加分类器
+                extension 'aar'   // 明确指定扩展名
+            }
+
+            // 可选但推荐：配置 POM 元数据，让使用者更清楚库的信息
+            pom {
+                name = 'SdkApiJar'
+                description = 'Prebuilt Android Library (AAR) for SUNTEK SDK'
+                url = 'https://github.com/SUNTEK-DEV/SdkApiJar' // 替换为你的真实仓库 URL
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'SUNTEK-DEV'
+                        name = 'SUNTEK Development Team'
+                        email = 'xdn@suntek.com' // 可选，替换为你的联系邮箱
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/SUNTEK-DEV/SdkApiJar.git'
+                    developerConnection = 'scm:git:ssh://github.com/SUNTEK-DEV/SdkApiJar.git'
+                    url = 'https://github.com/SUNTEK-DEV/SdkApiJar'
+                }
+            }
         }
-    }
-    
-    // 可选：避免发布时依赖其他无效任务
-    repositories {
-        mavenLocal() // 仅本地仓库，JitPack会自动处理远程分发
     }
 }
 
-// 关键：添加空的build任务，避免JitPack寻找assemble任务时报错
-task build {
-    // 任务依赖：仅依赖publishToMavenLocal（发布现成AAR到本地），无其他操作
-    dependsOn publishing.publications.release.publishToMavenLocal
-}
+// （可选）如果你的 AAR 依赖其他库，可以在这里声明它们，但这通常不是必须的，
+// 因为 AAR 内部已经包含了其依赖关系。如果确实需要，可以使用 dependencies {} 块。
+// 例如：
+// dependencies {
+//     implementation 'androidx.appcompat:appcompat:1.6.1'
+// }
