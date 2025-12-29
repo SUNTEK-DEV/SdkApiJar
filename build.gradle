@@ -1,65 +1,37 @@
 plugins {
-    id 'com.android.library'
+    id 'java-library'
     id 'maven-publish'
 }
 
-android {
-    compileSdkVersion 30
-
-    defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 30
-    }
-
-    sourceSets {
-        main {
-            manifest.srcFile 'AndroidManifest.xml'
-        }
-    }
-    // 注意：不要写任何 compileJava / compileKotlin 相关代码！
+// 禁用所有 Java 编译
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
+
+jar.enabled = false
 
 def aarFile = file('SdkApiJar_V1.250915.0914.aar')
 if (!aarFile.exists()) {
-    throw new GradleException("AAR file not found: ${aarFile.name}")
+    throw new GradleException("AAR not found!")
 }
 
 publishing {
     publications {
-        release(MavenPublication) {
-            groupId = 'com.github.SUNTEK-DEV'
+        maven(MavenPublication) {
             artifactId = 'SdkApiJar'
+            groupId = 'com.github.SUNTEK-DEV'
             version = project.version
 
             artifact(aarFile) {
                 extension 'aar'
+                classifier '' // 确保没有 classifier
             }
 
             pom {
+                packaging = 'aar' // 关键！告诉消费者这是 AAR
                 name = 'SdkApiJar'
-                description = 'Prebuilt AAR for SUNTEK SDK'
-                url = 'https://github.com/SUNTEK-DEV/SdkApiJar'
-
-                licenses {
-                    license {
-                        name = 'The Apache License, Version 2.0'
-                        url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id = 'SUNTEK-DEV'
-                        name = 'SUNTEK Development Team'
-                        email = 'xdn@suntek.com'
-                    }
-                }
-
-                scm {
-                    connection = 'scm:git:https://github.com/SUNTEK-DEV/SdkApiJar.git'
-                    developerConnection = 'scm:git:https://github.com/SUNTEK-DEV/SdkApiJar.git'
-                    url = 'https://github.com/SUNTEK-DEV/SdkApiJar'
-                }
+                description = 'Prebuilt AAR'
             }
         }
     }
