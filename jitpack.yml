@@ -1,0 +1,6 @@
+# 指定JDK版本，兼容Android库发布
+jdk:
+  - openjdk11
+# 可选：指定Gradle版本（如果构建失败可添加）
+# gradle:
+#   - 7.5

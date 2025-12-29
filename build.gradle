@@ -1,0 +1,18 @@
+plugins {
+    id 'maven-publish'  // 引入maven发布插件（JitPack必需）
+}
+
+// 配置发布逻辑，直接关联现成的AAR文件
+publishing {
+    publications {
+        release(MavenPublication) {
+            // 指定现成AAR文件作为发布产物
+            artifact file('SdkApiJar_V1.250915.0914.aar')
+            
+            // 配置GAV坐标（对应JitPack依赖地址）
+            groupId = 'com.github.SUNTEK'  // 例：com.github.XieDaning
+            artifactId = 'SdkApiJar'                // 例：SdkApiaar
+            version = '1.250915.0914'           // 例：1.0.0
+        }
+    }
+}
