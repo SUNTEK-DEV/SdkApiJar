@@ -5,7 +5,7 @@ pluginManagement {
         mavenCentral()
     }
     plugins {
-        id 'com.android.library' version '4.2.2'
+        id 'com.android.library' version '4.2.2' // 兼容 Gradle 6.7.1 + JDK 8
     }
 }
 rootProject.name = 'SdkApiJar'
