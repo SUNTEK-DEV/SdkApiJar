@@ -1,2 +1,24 @@
 // 无需额外内容，仅作为Gradle项目的标识
-rootProject.name = "SdkApiJar"
+// settings.gradle
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+    plugins {
+        // 显式指定 Android Gradle Plugin (AGP) 版本
+        id 'com.android.library' version '7.4.2' // 或你 AAR 编译时使用的 AGP 版本
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+rootProject.name = 'SdkApiJar'
